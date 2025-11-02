@@ -144,7 +144,7 @@ export default function BancoKidsApp() {
     if (!form.username || !form.password || !form.name) return setMessage("Preencha todos os campos.");
     if (users.find((u) => u.username.toLowerCase() === form.username.toLowerCase())) return setMessage("Nome de usuário já existe.");
     const newUser = { id: `u_${Date.now()}`, username: form.username, email: form.email || "", password: form.password, name: form.name, balance: 0, role: "student", banned: false };
-    setUsers((s) => [ ...s, newUser ]);
+    setUsers((s) => [...s, newUser]);
     setCurrent({ username: newUser.username, name: newUser.name, role: newUser.role });
     setPhase("dashboard");
     setForm({ username: "", password: "", name: "", email: "" });
@@ -312,8 +312,7 @@ export default function BancoKidsApp() {
   const exportTransactionsCSV = useCallback(() => {
     const rows = transactions.map((t) => `${new Date(t.ts).toISOString()},${t.type},${t.from},${t.to},${t.amount},"${t.note || ''}"`);
     const csv = `timestamp,type,from,to,amount,note
-${rows.join('
-')}`;
+${rows.join('')}`;
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -418,7 +417,7 @@ ${rows.join('
           </div>
         </div>
 
-        <section className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 border rounded-xl">
             <h3 className="font-semibold">{T[lang].send} dinheiro</h3>
             <label className="block mt-2 text-sm">Para (usuário)</label>
@@ -455,203 +454,204 @@ ${rows.join('
             </div>
 
             <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-2">
-              <SmallButton onClick={() => { const csv = users.map(u => `${u.username},${u.email},${u.name},${u.balance}`).join('
-'); const blob = new Blob([csv], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'users.csv'; a.click(); URL.revokeObjectURL(url); }} className="border">Exportar usuários CSV</SmallButton>
-              <SmallButton onClick={() => setPhase('transactions')} className="border">Ver transações</SmallButton>
-              <SmallButton onClick={() => setPhase('announcements')} className="border">Ver anúncios</SmallButton>
-            </div>
+              <SmallButton onClick={() => {
+                const csv = users.map(u => `${u.username},${u.email},${u.name},${u.balance}`).join(''); const blob = new Blob([csv], { type: 'text / csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'users.csv'; a.click(); URL.revokeObjectURL(url); }} className="border">Exportar usuários CSV</SmallButton>
+                < SmallButton onClick = {() => setPhase('transactions')} className="border">Ver transações</SmallButton>
+            <SmallButton onClick={() => setPhase('announcements')} className="border">Ver anúncios</SmallButton>
           </div>
-        </section>
-
-        {message && <div className="mt-4 text-sm text-green-600">{message}</div>}
       </div>
+        </div >
+
+    { message && <div className="mt-4 text-sm text-green-600">{message}</div>
+}
+      </div >
     );
   };
 
-  const AdminHub = () => {
-    return (
-      <div className="max-w-6xl mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">{T[lang].adminPanel}</h2>
-            <div className="text-sm text-gray-500">Usuário: {current ? current.name : ''} (Administrador)</div>
-          </div>
-          <div className="flex gap-2">
-            <select value={lang} onChange={(e) => setLang(e.target.value)} className="p-2 border rounded">
-              <option value="pt">PT</option>
-              <option value="en">EN</option>
-            </select>
-            <SmallButton onClick={logout} className="border">Sair</SmallButton>
-          </div>
-        </div>
-
-        <section className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="p-4 border rounded-xl">
-            <h3 className="font-semibold">{T[lang].addMoney} à conta</h3>
-            <label className="block mt-2 text-sm">Usuário alvo</label>
-            <StableInput value={targetUser} onChange={(e) => setTargetUser(e.target.value)} className="w-full p-2 border rounded" />
-            <label className="block mt-2 text-sm">Valor (€)</label>
-            <StableInput type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full p-2 border rounded" />
-            <SmallButton onClick={adminAddMoney} className="mt-3 bg-green-600 text-white">{T[lang].addMoney}</SmallButton>
-
-            <div className="mt-4">
-              <h4 className="font-semibold">Enviar Aviso</h4>
-              <StableInput value={adminNoticeTarget} onChange={(e) => setAdminNoticeTarget(e.target.value)} className="w-full p-2 border rounded mt-2" placeholder="Usuário (opcional)" />
-              <StableInput value={adminNoticeText} onChange={(e) => setAdminNoticeText(e.target.value)} className="w-full p-2 border rounded mt-2" placeholder="Texto do aviso" />
-              <SmallButton onClick={() => { adminSendNotice(adminNoticeTarget, adminNoticeText); setAdminNoticeTarget(''); setAdminNoticeText(''); }} className="mt-3 bg-indigo-600 text-white">Enviar Aviso</SmallButton>
-            </div>
-          </div>
-
-          <div className="p-4 border rounded-xl">
-            <h3 className="font-semibold">Transferências como Admin</h3>
-            <label className="block mt-2 text-sm">De</label>
-            <StableInput value={targetUser} onChange={(e) => setTargetUser(e.target.value)} className="w-full p-2 border rounded" />
-            <label className="block mt-2 text-sm">Para</label>
-            <StableInput value={transferTo} onChange={(e) => setTransferTo(e.target.value)} className="w-full p-2 border rounded" />
-            <label className="block mt-2 text-sm">Valor (€)</label>
-            <StableInput type="number" value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)} className="w-full p-2 border rounded" />
-            <SmallButton onClick={() => sendMoney(targetUser, transferTo, transferAmount)} className="mt-3 bg-blue-600 text-white">Enviar</SmallButton>
-
-            <div className="mt-4">
-              <h4 className="font-semibold">Impersonate</h4>
-              <StableInput value={impersonateUser} onChange={(e) => setImpersonateUser(e.target.value)} className="w-full p-2 border rounded" placeholder="username" />
-              <SmallButton onClick={() => adminImpersonate(impersonateUser)} className="mt-2 border">{T[lang].impersonate}</SmallButton>
-            </div>
-          </div>
-
-          <div className="p-4 border rounded-xl">
-            <h3 className="font-semibold">Gerir usuários</h3>
-            <div className="mt-2 space-y-2 max-h-56 overflow-auto">
-              {users.map((u) => (
-                <div key={u.username} className="flex items-center justify-between p-2 border rounded">
-                  <div>
-                    <div className="font-medium">{u.name} ({u.username})</div>
-                    <div className="text-xs text-gray-500">{T[lang].balance}: €{Number(u.balance).toFixed(2)} {u.banned ? "• BANIDO" : ""}</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <SmallButton onClick={() => adminToggleBan(u.username)} className="border">{u.banned ? "Desbanir" : "Banir"}</SmallButton>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4">
-              <SmallButton onClick={() => exportTransactionsCSV()} className="border">Exportar transações CSV</SmallButton>
-            </div>
-          </div>
-
-          <div className="p-4 border rounded-xl">
-            <h3 className="font-semibold">Jobs / Configurações</h3>
-            <div className="text-xs text-gray-500">Taxa: <strong>{(settings.taxRate * 100).toFixed(2)}%</strong> • Bónus horário: <strong>€{settings.hourlyBonus}</strong> • Sorteio: <strong>€{settings.lotteryPrize}</strong></div>
-            <label className="block mt-2 text-sm">Intervalo (ms) — para testes reduzir</label>
-            <StableInput type="number" value={settings.jobIntervalMs} onChange={(e) => setSettings((s) => ({ ...s, jobIntervalMs: Number(e.target.value) }))} className="w-full p-2 border rounded" />
-            <label className="block mt-2 text-sm">Limite para aprovação</label>
-            <StableInput type="number" value={settings.approvalLimit} onChange={(e) => setSettings((s) => ({ ...s, approvalLimit: Number(e.target.value) }))} className="w-full p-2 border rounded" />
-            <div className="mt-3 flex gap-2">
-              <SmallButton onClick={() => runJobs()} className="bg-yellow-400">Executar jobs agora</SmallButton>
-              <SmallButton onClick={() => { setAnnouncements((s) => [{ id: `a_${Date.now()}`, ts: Date.now(), message: `Admin ${current.username} limpou anúncios.` }, ...s]); setAnnouncements([]); }} className="border">Limpar anúncios</SmallButton>
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 border rounded-xl">
-            <h4 className="font-semibold">{T[lang].pending}</h4>
-            <div className="mt-2 space-y-2 max-h-56 overflow-auto">
-              {pending.length === 0 && <div className="text-xs text-gray-400">Sem pedidos pendentes.</div>}
-              {pending.map((p) => (
-                <div key={p.id} className="p-2 border rounded flex justify-between items-center">
-                  <div>
-                    <div className="font-medium">{p.from} → {p.to}</div>
-                    <div className="text-xs text-gray-500">€{p.amount} • {p.status}</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <SmallButton onClick={() => approvePending(p.id, true)} className="bg-green-600 text-white">Aprovar</SmallButton>
-                    <SmallButton onClick={() => approvePending(p.id, false)} className="border">Rejeitar</SmallButton>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-4 border rounded-xl">
-            <h4 className="font-semibold">Anúncios recentes</h4>
-            <div className="mt-2 space-y-2 max-h-56 overflow-auto text-sm text-blue-700">
-              {announcements.map((a) => (
-                <div key={a.id} className="p-2 border rounded bg-yellow-50">{a.message}</div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {message && <div className="mt-4 text-sm text-green-600">{message}</div>}
-      </div>
-    );
-  };
-
-  const TransactionsView = () => (
-    <div className="max-w-4xl mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{T[lang].transactions}</h2>
-        <div className="flex gap-2">
-          <SmallButton onClick={() => setPhase(current && (isAdmin() ? 'admin' : 'dashboard'))} className="border">Fechar</SmallButton>
-          <SmallButton onClick={() => exportTransactionsCSV()} className="border">Exportar CSV</SmallButton>
-        </div>
-      </div>
-
-      <div className="mt-4 max-h-96 overflow-auto">
-        <table className="w-full text-sm">
-          <thead className="text-left text-xs text-gray-500 border-b"><tr><th>Data</th><th>Tipo</th><th>De</th><th>Para</th><th>Valor</th><th>Nota</th></tr></thead>
-          <tbody>
-            {transactions.map((t) => (
-              <tr key={t.id} className="border-b"><td>{new Date(t.ts).toLocaleString()}</td><td>{t.type}</td><td>{t.from}</td><td>{t.to}</td><td>€{t.amount}</td><td>{t.note}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-
-  const AnnouncementsView = () => (
-    <div className="max-w-4xl mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{T[lang].announcements}</h2>
-        <SmallButton onClick={() => setPhase(current && (isAdmin() ? 'admin' : 'dashboard'))} className="border">Fechar</SmallButton>
-      </div>
-
-      <div className="mt-4 space-y-2 max-h-96 overflow-auto">
-        {announcements.map((a) => (
-          <div key={a.id} className="p-3 border rounded bg-yellow-50">{a.message}</div>
-        ))}
-      </div>
-    </div>
-  );
-
-  // main render
+const AdminHub = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white py-8">
-      <div className="container mx-auto px-4">
-        {phase === "home" && <Home />}
-        {phase === "login" && <Login />}
-        {phase === "signup" && <Signup />}
-        {phase === "dashboard" && current && <Dashboard />}
-        {phase === "admin" && current && (isAdmin() ? <AdminHub /> : <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg">Acesso negado.</div>)}
-        {phase === "transactions" && <TransactionsView />}
-        {phase === "announcements" && <AnnouncementsView />}
+    <div className="max-w-6xl mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">{T[lang].adminPanel}</h2>
+          <div className="text-sm text-gray-500">Usuário: {current ? current.name : ''} (Administrador)</div>
+        </div>
+        <div className="flex gap-2">
+          <select value={lang} onChange={(e) => setLang(e.target.value)} className="p-2 border rounded">
+            <option value="pt">PT</option>
+            <option value="en">EN</option>
+          </select>
+          <SmallButton onClick={logout} className="border">Sair</SmallButton>
+        </div>
       </div>
 
-      {/* Big announcement banner */}
-      {announcements.length > 0 && (
-        <div className="fixed bottom-4 right-4 max-w-md">
-          <div className="p-4 bg-yellow-100 border rounded shadow-lg">
-            <div className="font-semibold">Anúncio</div>
-            <div className="text-sm mt-2">{announcements[0].message}</div>
-            <div className="mt-3 flex gap-2 justify-end">
-              <SmallButton onClick={() => setAnnouncements((s) => s.slice(1))} className="border">Fechar</SmallButton>
-            </div>
+      <section className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="p-4 border rounded-xl">
+          <h3 className="font-semibold">{T[lang].addMoney} à conta</h3>
+          <label className="block mt-2 text-sm">Usuário alvo</label>
+          <StableInput value={targetUser} onChange={(e) => setTargetUser(e.target.value)} className="w-full p-2 border rounded" />
+          <label className="block mt-2 text-sm">Valor (€)</label>
+          <StableInput type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full p-2 border rounded" />
+          <SmallButton onClick={adminAddMoney} className="mt-3 bg-green-600 text-white">{T[lang].addMoney}</SmallButton>
+
+          <div className="mt-4">
+            <h4 className="font-semibold">Enviar Aviso</h4>
+            <StableInput value={adminNoticeTarget} onChange={(e) => setAdminNoticeTarget(e.target.value)} className="w-full p-2 border rounded mt-2" placeholder="Usuário (opcional)" />
+            <StableInput value={adminNoticeText} onChange={(e) => setAdminNoticeText(e.target.value)} className="w-full p-2 border rounded mt-2" placeholder="Texto do aviso" />
+            <SmallButton onClick={() => { adminSendNotice(adminNoticeTarget, adminNoticeText); setAdminNoticeTarget(''); setAdminNoticeText(''); }} className="mt-3 bg-indigo-600 text-white">Enviar Aviso</SmallButton>
           </div>
         </div>
-      )}
+
+        <div className="p-4 border rounded-xl">
+          <h3 className="font-semibold">Transferências como Admin</h3>
+          <label className="block mt-2 text-sm">De</label>
+          <StableInput value={targetUser} onChange={(e) => setTargetUser(e.target.value)} className="w-full p-2 border rounded" />
+          <label className="block mt-2 text-sm">Para</label>
+          <StableInput value={transferTo} onChange={(e) => setTransferTo(e.target.value)} className="w-full p-2 border rounded" />
+          <label className="block mt-2 text-sm">Valor (€)</label>
+          <StableInput type="number" value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)} className="w-full p-2 border rounded" />
+          <SmallButton onClick={() => sendMoney(targetUser, transferTo, transferAmount)} className="mt-3 bg-blue-600 text-white">Enviar</SmallButton>
+
+          <div className="mt-4">
+            <h4 className="font-semibold">Impersonate</h4>
+            <StableInput value={impersonateUser} onChange={(e) => setImpersonateUser(e.target.value)} className="w-full p-2 border rounded" placeholder="username" />
+            <SmallButton onClick={() => adminImpersonate(impersonateUser)} className="mt-2 border">{T[lang].impersonate}</SmallButton>
+          </div>
+        </div>
+
+        <div className="p-4 border rounded-xl">
+          <h3 className="font-semibold">Gerir usuários</h3>
+          <div className="mt-2 space-y-2 max-h-56 overflow-auto">
+            {users.map((u) => (
+              <div key={u.username} className="flex items-center justify-between p-2 border rounded">
+                <div>
+                  <div className="font-medium">{u.name} ({u.username})</div>
+                  <div className="text-xs text-gray-500">{T[lang].balance}: €{Number(u.balance).toFixed(2)} {u.banned ? "• BANIDO" : ""}</div>
+                </div>
+                <div className="flex gap-2">
+                  <SmallButton onClick={() => adminToggleBan(u.username)} className="border">{u.banned ? "Desbanir" : "Banir"}</SmallButton>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4">
+            <SmallButton onClick={() => exportTransactionsCSV()} className="border">Exportar transações CSV</SmallButton>
+          </div>
+        </div>
+
+        <div className="p-4 border rounded-xl">
+          <h3 className="font-semibold">Jobs / Configurações</h3>
+          <div className="text-xs text-gray-500">Taxa: <strong>{(settings.taxRate * 100).toFixed(2)}%</strong> • Bónus horário: <strong>€{settings.hourlyBonus}</strong> • Sorteio: <strong>€{settings.lotteryPrize}</strong></div>
+          <label className="block mt-2 text-sm">Intervalo (ms) — para testes reduzir</label>
+          <StableInput type="number" value={settings.jobIntervalMs} onChange={(e) => setSettings((s) => ({ ...s, jobIntervalMs: Number(e.target.value) }))} className="w-full p-2 border rounded" />
+          <label className="block mt-2 text-sm">Limite para aprovação</label>
+          <StableInput type="number" value={settings.approvalLimit} onChange={(e) => setSettings((s) => ({ ...s, approvalLimit: Number(e.target.value) }))} className="w-full p-2 border rounded" />
+          <div className="mt-3 flex gap-2">
+            <SmallButton onClick={() => runJobs()} className="bg-yellow-400">Executar jobs agora</SmallButton>
+            <SmallButton onClick={() => { setAnnouncements((s) => [{ id: `a_${Date.now()}`, ts: Date.now(), message: `Admin ${current.username} limpou anúncios.` }, ...s]); setAnnouncements([]); }} className="border">Limpar anúncios</SmallButton>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 border rounded-xl">
+          <h4 className="font-semibold">{T[lang].pending}</h4>
+          <div className="mt-2 space-y-2 max-h-56 overflow-auto">
+            {pending.length === 0 && <div className="text-xs text-gray-400">Sem pedidos pendentes.</div>}
+            {pending.map((p) => (
+              <div key={p.id} className="p-2 border rounded flex justify-between items-center">
+                <div>
+                  <div className="font-medium">{p.from} → {p.to}</div>
+                  <div className="text-xs text-gray-500">€{p.amount} • {p.status}</div>
+                </div>
+                <div className="flex gap-2">
+                  <SmallButton onClick={() => approvePending(p.id, true)} className="bg-green-600 text-white">Aprovar</SmallButton>
+                  <SmallButton onClick={() => approvePending(p.id, false)} className="border">Rejeitar</SmallButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-4 border rounded-xl">
+          <h4 className="font-semibold">Anúncios recentes</h4>
+          <div className="mt-2 space-y-2 max-h-56 overflow-auto text-sm text-blue-700">
+            {announcements.map((a) => (
+              <div key={a.id} className="p-2 border rounded bg-yellow-50">{a.message}</div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {message && <div className="mt-4 text-sm text-green-600">{message}</div>}
     </div>
   );
+};
+
+const TransactionsView = () => (
+  <div className="max-w-4xl mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg">
+    <div className="flex items-center justify-between">
+      <h2 className="text-2xl font-bold">{T[lang].transactions}</h2>
+      <div className="flex gap-2">
+        <SmallButton onClick={() => setPhase(current && (isAdmin() ? 'admin' : 'dashboard'))} className="border">Fechar</SmallButton>
+        <SmallButton onClick={() => exportTransactionsCSV()} className="border">Exportar CSV</SmallButton>
+      </div>
+    </div>
+
+    <div className="mt-4 max-h-96 overflow-auto">
+      <table className="w-full text-sm">
+        <thead className="text-left text-xs text-gray-500 border-b"><tr><th>Data</th><th>Tipo</th><th>De</th><th>Para</th><th>Valor</th><th>Nota</th></tr></thead>
+        <tbody>
+          {transactions.map((t) => (
+            <tr key={t.id} className="border-b"><td>{new Date(t.ts).toLocaleString()}</td><td>{t.type}</td><td>{t.from}</td><td>{t.to}</td><td>€{t.amount}</td><td>{t.note}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
+const AnnouncementsView = () => (
+  <div className="max-w-4xl mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg">
+    <div className="flex items-center justify-between">
+      <h2 className="text-2xl font-bold">{T[lang].announcements}</h2>
+      <SmallButton onClick={() => setPhase(current && (isAdmin() ? 'admin' : 'dashboard'))} className="border">Fechar</SmallButton>
+    </div>
+
+    <div className="mt-4 space-y-2 max-h-96 overflow-auto">
+      {announcements.map((a) => (
+        <div key={a.id} className="p-3 border rounded bg-yellow-50">{a.message}</div>
+      ))}
+    </div>
+  </div>
+);
+
+// main render
+return (
+  <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white py-8">
+    <div className="container mx-auto px-4">
+      {phase === "home" && <Home />}
+      {phase === "login" && <Login />}
+      {phase === "signup" && <Signup />}
+      {phase === "dashboard" && current && <Dashboard />}
+      {phase === "admin" && current && (isAdmin() ? <AdminHub /> : <div className="max-w-md mx-auto mt-12 p-6 bg-white rounded-2xl shadow-lg">Acesso negado.</div>)}
+      {phase === "transactions" && <TransactionsView />}
+      {phase === "announcements" && <AnnouncementsView />}
+    </div>
+
+    {/* Big announcement banner */}
+    {announcements.length > 0 && (
+      <div className="fixed bottom-4 right-4 max-w-md">
+        <div className="p-4 bg-yellow-100 border rounded shadow-lg">
+          <div className="font-semibold">Anúncio</div>
+          <div className="text-sm mt-2">{announcements[0].message}</div>
+          <div className="mt-3 flex gap-2 justify-end">
+            <SmallButton onClick={() => setAnnouncements((s) => s.slice(1))} className="border">Fechar</SmallButton>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
 }
